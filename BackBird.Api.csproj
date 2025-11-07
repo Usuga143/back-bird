@@ -1,0 +1,35 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="BCrypt.Net-Next" Version="4.0.3" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.0">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="8.0.0" />
+    <PackageReference Include="Microsoft.IdentityModel.Tokens" Version="8.14.0" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
+    <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.14.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="src\Bird.Modules\Sightings\Aplication\Queries\GettAllSightings\" />
+    <Folder Include="src\Bird.Modules\Sightings\Infrastructure\Persistence\" />
+    <Folder Include="src\Bird.Modules\Users\Aplication\Queries\GettAllUsers\" />
+    <Folder Include="src\Bird.Modules\Birds\Aplication\Queries\GettAllBirds\" />
+    <Folder Include="src\Bird.Modules\Birds\Infrastructure\Persistence\" />
+    <Folder Include="src\Bird.Modules\Birds\Infrastructure\" />
+    <Folder Include="src\BirdShared\Utilities\" />
+    <Folder Include="src\BirdShared\BaseClasses\" />
+    <Folder Include="src\BirdShared\Abstractions\" />
+    <Folder Include="src\BirdShared\" />
+  </ItemGroup>
+
+</Project>
