@@ -25,7 +25,25 @@ namespace BackBird.Api.src.Bird.Modules.Users.Infrastructure.Services
                 new Claim(ClaimTypes.Role, user.Role.ToString())
             };
 
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]));
+            var keyConfig = _configuration["Jwt:Key"] ?? string.Empty;
+
+            // Try to interpret the key as base64; if that fails, use UTF8 bytes
+            byte[] keyBytes;
+            try
+            {
+                keyBytes = Convert.FromBase64String(keyConfig);
+            }
+            catch
+            {
+                keyBytes = Encoding.UTF8.GetBytes(keyConfig);
+            }
+
+            if (keyBytes.Length < 32)
+            {
+                throw new InvalidOperationException("JWT key is too short. Provide a key with at least 32 bytes (256 bits). Use a 32-byte binary key encoded in base64 or a UTF8 string with 32+ characters.");
+            }
+
+            var key = new SymmetricSecurityKey(keyBytes);
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
             var token = new JwtSecurityToken(
