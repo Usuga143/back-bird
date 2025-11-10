@@ -5,6 +5,7 @@ using BackBird.Api.src.Bird.Modules.Users.Domain.Repositories;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
+using Microsoft.Extensions.Logging;
 
 namespace BackBird.Api.src.Bird.Modules.Users.Aplication.Controllers
 {
@@ -15,12 +16,14 @@ namespace BackBird.Api.src.Bird.Modules.Users.Aplication.Controllers
         private readonly IUserRepository _repo;
         private readonly IPasswordHasher _hasher;
         private readonly IJwtService _jwt;
+        private readonly ILogger<AuthController> _logger;
 
-        public AuthController(IUserRepository repo, IPasswordHasher hasher, IJwtService jwt)
+        public AuthController(IUserRepository repo, IPasswordHasher hasher, IJwtService jwt, ILogger<AuthController> logger)
         {
             _repo = repo;
             _hasher = hasher;
             _jwt = jwt;
+            _logger = logger;
         }
 
         [HttpPost("register")]
@@ -40,23 +43,40 @@ namespace BackBird.Api.src.Bird.Modules.Users.Aplication.Controllers
         }
 
         public class LoginRequest { public string Email { get; set; } = ""; public string Password { get; set; } = ""; }
+        public class UserDto { public Guid Id { get; set; } public string Email { get; set; } = ""; public string Name { get; set; } = ""; public string Role { get; set; } = ""; }
+        public class LoginResponse { public UserDto User { get; set; } = new UserDto(); public string Token { get; set; } = ""; }
 
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginRequest request)
         {
+            if (request == null || string.IsNullOrWhiteSpace(request.Email) || string.IsNullOrWhiteSpace(request.Password))
+            {
+                _logger.LogWarning("Login attempt with invalid payload");
+                return BadRequest("Email and password are required.");
+            }
+
             var user = await _repo.GetByEmailAsync(request.Email);
-            if (user == null) return Unauthorized("Credenciales inválidas.");
+            if (user == null)
+            {
+                _logger.LogInformation("Login failed for {Email}: user not found", request.Email);
+                return Unauthorized();
+            }
 
             if (!_hasher.Verify(request.Password, user.PasswordHash))
-                return Unauthorized("Credenciales inválidas.");
+            {
+                _logger.LogInformation("Login failed for {Email}: invalid password", request.Email);
+                return Unauthorized();
+            }
 
             var token = _jwt.GenerateToken(user);
-            return Ok(new
+
+            var resp = new LoginResponse
             {
-                token,
-                expiresIn = 60 * 60 * 2, // 2 horas en segundos
-                user = new { id = user.Id, email = user.Email, name = user.Name, role = user.Role.ToString() }
-            });
+                Token = token,
+                User = new UserDto { Id = user.Id, Email = user.Email, Name = user.Name, Role = user.Role.ToString() }
+            };
+
+            return Ok(resp);
         }
 
         // Ejemplo de endpoint protegido que el frontend puede llamar con Authorization header
